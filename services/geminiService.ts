@@ -2,9 +2,6 @@ import { GoogleGenAI, Modality } from "@google/genai";
 import { Attachment, Message, MessageRole } from "../types";
 import { decodeBase64, decodeAudioData } from "../utils/audioUtils";
 
-// Initialize Gemini Client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 const SYSTEM_INSTRUCTION = `
 You are "Alaska" (ألاسكا), an advanced personal AI assistant.
 You were programmed and developed by "Hamza Al-Jammal" (حمزه الجمل).
@@ -15,6 +12,20 @@ Your mission is to help the user with conversation, image analysis, and PDF read
 If the user speaks Arabic, reply in Arabic. If the user speaks English, reply in English.
 Keep answers helpful, concise when needed, and comprehensive when asked.
 `;
+
+let aiInstance: GoogleGenAI | null = null;
+
+function getAiClient(): GoogleGenAI {
+  if (!aiInstance) {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      console.error("API_KEY is missing via process.env.API_KEY");
+      throw new Error("API Key is missing");
+    }
+    aiInstance = new GoogleGenAI({ apiKey });
+  }
+  return aiInstance;
+}
 
 /**
  * Converts a File object to a base64 string suitable for the Gemini API.
@@ -46,11 +57,13 @@ export async function generateTextResponse(
   history: Message[]
 ): Promise<string> {
   
-  // Prepare history for context (exclude the very last user message which is passed in currentMessage/attachments)
-  // We limit history to keep context window manageable
-  const recentHistory = history.slice(-10); 
-  
   try {
+    const ai = getAiClient();
+    
+    // Prepare history for context (exclude the very last user message which is passed in currentMessage/attachments)
+    // We limit history to keep context window manageable
+    const recentHistory = history.slice(-10); 
+    
     const chat = ai.chats.create({
       model: 'gemini-2.5-flash',
       config: {
@@ -82,7 +95,7 @@ export async function generateTextResponse(
     return result.text || "عذراً، لم أستطع تكوين رد. (Sorry, I couldn't generate a response.)";
   } catch (error) {
     console.error("Gemini Text Error:", error);
-    return "عذراً، حدث خطأ أثناء الاتصال بالخادم. (Error connecting to Alaska AI)";
+    return "عذراً، حدث خطأ أثناء الاتصال بالخادم، أو مفتاح API غير مفعل. (Error connecting to Alaska AI)";
   }
 }
 
@@ -92,6 +105,7 @@ export async function generateTextResponse(
  */
 export async function generateSpeech(text: string, audioContext: AudioContext): Promise<AudioBuffer | null> {
   try {
+    const ai = getAiClient();
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-preview-tts',
       contents: {
