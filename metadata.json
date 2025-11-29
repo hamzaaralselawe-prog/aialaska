@@ -1,0 +1,7 @@
+{
+  "name": "Alaska AI (ألاسكا)",
+  "description": "مساعد ذكي شخصي يتحدث العربية والإنجليزية. (Bilingual AI Assistant). Developed by Hamza Al-Jammal.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
