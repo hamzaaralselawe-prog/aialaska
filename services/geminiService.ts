@@ -19,8 +19,7 @@ function getAiClient(): GoogleGenAI {
   if (!aiInstance) {
     const apiKey = process.env.API_KEY;
     if (!apiKey) {
-      console.error("API_KEY is missing via process.env.API_KEY");
-      throw new Error("API Key is missing");
+      throw new Error("API_KEY_MISSING");
     }
     aiInstance = new GoogleGenAI({ apiKey });
   }
@@ -93,9 +92,15 @@ export async function generateTextResponse(
     });
 
     return result.text || "عذراً، لم أستطع تكوين رد. (Sorry, I couldn't generate a response.)";
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini Text Error:", error);
-    return "عذراً، حدث خطأ أثناء الاتصال بالخادم، أو مفتاح API غير مفعل. (Error connecting to Alaska AI)";
+    
+    // Handle specific API Key errors
+    if (error.message === "API_KEY_MISSING" || error.toString().includes("API key") || error.status === 403) {
+      return "⚠️ **تنبيه هام**: مفتاح API مفقود أو غير صحيح.\n\nيرجى التأكد من إضافة متغير البيئة `API_KEY` في إعدادات المنصة (مثل Netlify أو Vercel).\n\n(Critical Error: API Key is missing or invalid. Please check your deployment settings.)";
+    }
+
+    return "عذراً، حدث خطأ أثناء الاتصال بالخادم. (Error connecting to Alaska AI)";
   }
 }
 

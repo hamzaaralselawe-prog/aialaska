@@ -45,6 +45,21 @@ function App() {
     document.documentElement.lang = language;
   }, [language]);
 
+  // Check for API Key on mount
+  useEffect(() => {
+    // process.env.API_KEY is replaced by Vite at build time
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      const errorMsg: Message = {
+        id: 'system-error-key',
+        role: MessageRole.MODEL,
+        text: "⚠️ **خطأ في الإعدادات**: لم يتم العثور على مفتاح API.\nيرجى إضافة `API_KEY` في إعدادات المنصة (Environment Variables) ليعمل التطبيق.\n\n⚠️ **Configuration Error**: API Key not found.\nPlease add `API_KEY` to your environment variables.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMsg]);
+    }
+  }, []);
+
   // Initialize AudioContext on user interaction
   const initAudioContext = () => {
     if (!audioContextRef.current) {
