@@ -1,6 +1,6 @@
 import React from 'react';
 import { Message, MessageRole, Language } from '../types';
-import { Bot, User, Volume2, FileText, Image as ImageIcon } from 'lucide-react';
+import { Bot, User, Volume2, FileText } from 'lucide-react';
 import { getTranslation } from '../utils/translations';
 
 interface ChatMessageProps {
